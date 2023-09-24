@@ -60,8 +60,8 @@ def acquire_user_gender(socket_connection):
         result = speech_recognizer.recognize_once_async().get()
         user_gender = result.text.strip('.?!').lower()
     print("New user gender:", user_gender)
-    female_list = ["female", "femmina", "femminile", "donna"]
-    male_list = ["male", "maschio", "maschile", "uomo"]
+    female_list = ["female", "femmina", "femminile", "donna", "f", "w"]
+    male_list = ["male", "maschio", "maschile", "uomo", "m"]
     if any(word in user_gender for word in female_list):
         user_gender = "f"
     elif any(word in user_gender for word in male_list):

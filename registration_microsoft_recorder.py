@@ -54,7 +54,7 @@ def acquire_user_gender(socket_connection, r):
     # user_gender = result.strip('.?!').lower()
     user_gender = input("Confirm gender:")
     print("New user gender:", user_gender)
-    female_list = ["female", "femmina", "femminile", "donna", "f"]
+    female_list = ["female", "femmina", "femminile", "donna", "f", "w"]
     male_list = ["male", "maschio", "maschile", "uomo", "m"]
     if any(word in user_gender for word in female_list):
         user_gender = "f"
@@ -62,9 +62,20 @@ def acquire_user_gender(socket_connection, r):
         user_gender = "m"
     else:
         user_gender = "nb"
-    print("Sending gender on socket", user_gender)
     socket_connection.send(user_gender.encode('utf-8'))
     return user_gender
+
+
+# This method acquires the name of the user by getting the transcription of the audio stream using Microsoft APIs and
+# sends the name to the client
+def acquire_user_age(socket_connection, r):
+    socket_connection.recv(256).decode('utf-8')
+    # result = r.listen_once()
+    # user_name = result.strip('.?!')
+    user_age = input("Confirm age:")
+    # print("New user age:", user_name)
+    socket_connection.send(user_age.encode('utf-8'))
+    return user_age
 
 
 def perform_enrollment(socket_connection, prof_id):
@@ -128,7 +139,10 @@ if __name__ == '__main__':
         # ** STEP 4 ** Wait for the client to ask for the transcription of the gender of the new profile
         profile_gender = acquire_user_gender(connection, r)
 
-        # ** STEP 5 ** Listen to the audio input for 30 seconds, save it in a wav file inside the folder created above
+        # ** STEP 5 ** Wait for the client to ask for the transcription of the gender of the new profile
+        profile_age = acquire_user_age(connection, r)
+
+        # ** STEP 6 ** Listen to the audio input for 30 seconds, save it in a wav file inside the folder created above
         # and send it to Microsoft Speaker Recognition APIs for the enrollment of the new profile.
         print("Starting enrollment procedure")
         perform_enrollment(connection, profile_id)

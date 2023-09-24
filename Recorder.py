@@ -27,7 +27,7 @@ import json
 import os
 import gc
 
-rms_threshold = 60
+rms_threshold = 40
 short_normalize = (1.0 / 32768.0)
 chunk = 1024
 audio_format = pyaudio.paInt16
