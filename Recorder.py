@@ -16,7 +16,6 @@ from speaker_recognition_util import recognize_speaker
 import azure.cognitiveservices.speech as speechsdk
 import xml.etree.cElementTree as ET
 import threading
-
 import pyaudio
 import struct
 import math
