@@ -151,7 +151,7 @@ class Recorder:
         end = time.time() + split_silence_time
         timeout = time.time() + 30
         while current <= end:
-            data = self.stream.read(chunk)
+            data = self.stream.read(chunk, exception_on_overflow=False)
             if self.rms(data) >= rms_threshold:
                 end = time.time() + split_silence_time
             current = time.time()
