@@ -41,8 +41,20 @@ exit_keywords = ["passo e chiudo", "cosa ne pensi"]
 class Recorder:
     def __init__(self, lang):
         self.p = pyaudio.PyAudio()
-        self.stream = self.p.open(format=audio_format, channels=channels, rate=rate, input=True, output=True,
-                                  frames_per_buffer=chunk, start=False)
+        info = self.p.get_host_api_info_by_index(0)
+        num_devices = info.get('deviceCount')
+        input_device = -1
+        for i in range(0, num_devices):
+            if (self.p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
+                if self.p.get_device_info_by_host_api_device_index(0, i).get('name') == "USB PnP Audio Device":
+                    input_device = i
+        if input_device == -1:
+            self.stream = self.p.open(format=audio_format, channels=channels, rate=rate, input=True, output=True,
+                                      frames_per_buffer=chunk, start=False)
+        else:
+            self.stream = self.p.open(format=audio_format, channels=channels, rate=rate, input=True, output=True,
+                                      frames_per_buffer=chunk, start=False, input_device_index=input_device)
+
         self.prev_input = []
         self.max_chunks = 20
         # Initialize object that will contain the data related to the dialogue turn
