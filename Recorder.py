@@ -47,6 +47,7 @@ class Recorder:
         for i in range(0, num_devices):
             if (self.p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
                 if self.p.get_device_info_by_host_api_device_index(0, i).get('name') == "USB PnP Audio Device":
+                    print(self.p.get_device_info_by_host_api_device_index(0, i).get('name'))
                     input_device = i
         if input_device == -1:
             self.stream = self.p.open(format=audio_format, channels=channels, rate=rate, input=True, output=True,
