@@ -34,7 +34,7 @@ channels = 1
 rate = 44100
 s_width = 2
 split_silence_time = 1
-final_silence_time = 1
+final_silence_time = 2
 exit_keywords = ["passo e chiudo", "cosa ne pensi"]
 
 
