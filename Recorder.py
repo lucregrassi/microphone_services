@@ -33,7 +33,7 @@ audio_format = pyaudio.paInt16
 channels = 1
 rate = 44100
 s_width = 2
-split_silence_time = 1
+split_silence_time = 0.5
 final_silence_time = 2
 exit_keywords = ["passo e chiudo", "cosa ne pensi"]
 
@@ -67,6 +67,7 @@ class Recorder:
         self.root = ET.Element("response")
         self.speech_config = speechsdk.SpeechConfig(subscription=os.environ["COGNITIVE_SERVICE_KEY"],
                                                     region="westeurope", speech_recognition_language=lang)
+        self.t1 = threading.Thread(target=self.speech_and_speaker_recognition, args=("", 0,))
 
     def speech_recognition(self, wav_filename):
         print("T1: Performing speech to text...")
@@ -176,11 +177,11 @@ class Recorder:
         print('*** Recording saved. Return to listening ***')
         # print('Written to file: {}'.format(filename))
         if self.mode == "continuous":
-            t1 = threading.Thread(target=self.speech_and_speaker_recognition, args=(filename, wav_duration,))
-            t1.start()
+            self.t1 = threading.Thread(target=self.speech_and_speaker_recognition, args=(filename, wav_duration,))
+            self.t1.start()
         else:
-            t1 = threading.Thread(target=self.speech_recognition, args=(filename,))
-            t1.start()
+            self.t1 = threading.Thread(target=self.speech_recognition, args=(filename,))
+            self.t1.start()
 
     def listen_continuous(self, server_recorder_socket):
         while True:
@@ -195,19 +196,29 @@ class Recorder:
                 self.dialogue_turn = DialogueTurn()
                 current = time.time()
                 end = time.time() + final_silence_time
+                print("init current = ", current, " end = ", end)
                 while current <= end:
                     audio_input = self.stream.read(chunk, exception_on_overflow=False)
                     rms_val = self.rms(audio_input)
                     if rms_val > rms_threshold:
-                        end = time.time() + final_silence_time
                         self.record()
+                        end = time.time() + final_silence_time
                     else:
                         self.prev_input.append(audio_input)
                         if len(self.prev_input) > self.max_chunks:
                             self.prev_input = self.prev_input[1:]
                         current = time.time()
                 if self.dialogue_turn.get_text() not in ["", " "]:
+                    two_secs_silence = time.time()
                     self.stream.stop_stream()
+                    # as soon as the user has finished talking, send an ack to the server
+                    connection.send("user finished talking".encode('utf-8'))
+                    print("*** Waiting for last thread to finish transcription ***")
+                    self.t1.join()
+                    finished_transcription = time.time()
+                    # TODO: write this time in log file
+                    final_delay = finished_transcription - two_secs_silence
+                    print("# FINAL DELAY:", final_delay)
                     print("Recognized string:", self.dialogue_turn.get_text())
                     xml_string = self.dialogue_turn.to_xml_string()
                     print("*** Sending to client:", xml_string)
